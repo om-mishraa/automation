@@ -1,5 +1,4 @@
 import { test } from '@playwright/test';
-require('dotenv').config();
 const timeout = 600000;
 const USER_NAME = process.env.USER_NAME;
 const PASSWORD = process.env.PASSWORD;
