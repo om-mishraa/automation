@@ -1,4 +1,5 @@
 import { test } from '@playwright/test';
+require('dotenv').config();
 const timeout = 600000;
 const USER_NAME = process.env.USER_NAME;
 const PASSWORD = process.env.PASSWORD;
@@ -20,7 +21,13 @@ const navigateToNextActivity = async (page) => {
       page.waitForLoadState('networkidle')
     ]);
 
-    if (await page.getByRole('button', { name: 'Attempt quiz' }).isVisible()) {
+
+    const summaryText = await page.getByText('Summary of your previous attempts').isVisible();
+    if (summaryText) {
+      console.log('Skipping quiz re-attempt as its finished previously');
+    }else if (await page.getByRole('button', { name: 'Re-attempt quiz' }).isVisible()) {
+      console.log('Skipping quiz re-attempt');
+    } else if (await page.getByRole('button', { name: 'Attempt quiz' }).isVisible()) {
       await page.getByRole('button', { name: 'Attempt quiz' }).click();
 
       const startAttemptButton = page.getByRole('button', { name: 'Start attempt' });
@@ -58,8 +65,6 @@ const navigateToNextActivity = async (page) => {
 
       await page.waitForSelector('text=Your attempt has been submitted', { state: 'hidden', timeout: timeout });
       
-    } else if (await page.getByRole('button', { name: 'Re-attempt quiz' }).isVisible()) {
-      console.log('Skipping quiz re-attempt');
     }
 
     nextActivityLink = page.locator('a:has-text("Next Activity")');
@@ -69,7 +74,10 @@ const navigateToNextActivity = async (page) => {
 
 
 async function tryClickCardWithFallback(page) {
-  const firstCard = page.locator('.single-card').nth(COURSE==='Course name Computational Statistics' ? 0 :1).locator('div').first();
+  console.log(COURSE);
+  console.log(MODULE);
+  console.log('Course name Computational Statistics'==COURSE && 'Module 4'==MODULE);
+  const firstCard = page.locator('.single-card').nth('Course name Computational Statistics'==COURSE && 'Module 4'==MODULE ? 0 :1).locator('div').first();
   // Helper function to check if the page has navigated successfully
   async function didNavigate() {
     try {
