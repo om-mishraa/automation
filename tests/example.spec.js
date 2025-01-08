@@ -1,19 +1,18 @@
 import { test } from '@playwright/test';
 
-const timeout = 600000;
-const USER_NAME = process.env.USER_NAME;
-const PASSWORD = process.env.PASSWORD;
-const COURSE = process.env.COURSE;
-const MODULE = process.env.MODULE;
+const timeout = 600000;  // Set a timeout for the test
+const USER_NAME = process.env.USER_NAME;  // Fetch username from environment variable
+const PASSWORD = process.env.PASSWORD;    // Fetch password from environment variable
+const COURSE = process.env.COURSE;        // Fetch course name from environment variable
+const MODULE = process.env.MODULE;        // Fetch module name from environment variable
 
-// Hardcoded URL
-const URL = 'https://amigo.amityonline.com';
+let iteration = 0;  // Counter for iterations
 
-let iteration = 0;
-
+// Function to navigate through the next activity
 const navigateToNextActivity = async (page) => {
     let nextActivityLink = page.locator('a:has-text("Next Activity")');
-    console.log(nextActivityLink + " found next activity link");
+    console.log("Found next activity link");
+
     while (await nextActivityLink.count() > 0) {
         iteration++;
         console.log('Completed iterations: ' + iteration);
@@ -25,7 +24,7 @@ const navigateToNextActivity = async (page) => {
 
         const summaryText = await page.getByText('Summary of your previous attempts').isVisible();
         if (summaryText) {
-            console.log('Skipping quiz re-attempt as its finished previously');
+            console.log('Skipping quiz re-attempt as it was previously finished');
         } else if (await page.getByRole('button', { name: 'Re-attempt quiz' }).isVisible()) {
             console.log('Skipping quiz re-attempt');
         } else if (await page.getByRole('button', { name: 'Attempt quiz' }).isVisible()) {
@@ -67,13 +66,12 @@ const navigateToNextActivity = async (page) => {
     }
 };
 
-
+// Function to handle card clicks with fallback
 async function tryClickCardWithFallback(page) {
-    console.log(COURSE);
-    console.log(MODULE);
-    console.log('Course name Computational Statistics' == COURSE && 'Module 4' == MODULE);
+    console.log(`Selected Course: ${COURSE}`);
+    console.log(`Selected Module: ${MODULE}`);
     
-    const firstCard = page.locator('.single-card').nth('Course name Computational Statistics' == COURSE && 'Module 4' == MODULE ? 0 : 1).locator('div').first();
+    const firstCard = page.locator('.single-card').nth(0).locator('div').first();
 
     async function didNavigate() {
         try {
@@ -92,8 +90,8 @@ async function tryClickCardWithFallback(page) {
         return;
     }
 
-    console.log('First card did not navigate. Clicking the second card...');
     const secondCard = page.locator('.single-card').nth(1).locator('div').first();
+    console.log('First card did not navigate. Clicking the second card...');
     await secondCard.click();
 
     if (await didNavigate()) {
@@ -103,11 +101,13 @@ async function tryClickCardWithFallback(page) {
     }
 }
 
+// Main test block with the URL directly hardcoded
 test('test', async ({ page }) => {
     test.setTimeout(timeout);
 
-    // Using the hardcoded URL here
-    await page.goto(URL);
+    // Hardcoded URL here
+    await page.goto('https://amigo.amityonline.com');
+    
     await page.screenshot({ path: 'screenshots/initial.png', fullPage: true });
     await page.getByPlaceholder('Username').fill(USER_NAME);
     await page.getByPlaceholder('Password').fill(PASSWORD);
@@ -118,7 +118,6 @@ test('test', async ({ page }) => {
     await page.getByRole('link', { name: MODULE }).click();
 
     await tryClickCardWithFallback(page);
-
     await navigateToNextActivity(page);
 
     await page.screenshot({ path: 'screenshots/final_screenshot.png', fullPage: true });
