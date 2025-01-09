@@ -106,7 +106,7 @@ test('test', async ({ page }) => {
     test.setTimeout(timeout);
 
     // Hardcoded URL here
-    await page.goto('https://amigo.amityonline.com');
+    await page.goto('https://amigo.amityonline.com/login/index.php');
     
     await page.screenshot({ path: 'screenshots/initial.png', fullPage: true });
     await page.getByPlaceholder('Username').fill(USER_NAME);
